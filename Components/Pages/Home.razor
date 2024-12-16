@@ -1,0 +1,131 @@
+﻿@page "/"
+@using System.Collections.ObjectModel
+@inject IJSRuntime JSRuntime
+@inject CoinGeckoService CoinGeckoService
+@rendermode InteractiveServer
+
+<script src="app.js"></script>
+
+<div style="display: flex; align-items: center; margin-left: 10px;">
+    <a href="https://github.com/MonkeyWhisperer/LaboratorCryptoAPI-RNA" target="_blank" style="margin-right: 10px; text-decoration: none;">
+        <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub" width="30" height="30" />
+    </a>
+    <h3 style="margin: 0;">Piață Criptomonede folosind API public de la <a target="_blank" href="https://docs.coingecko.com/v3.0.1/reference/introduction">CoinGecko</a></h3>
+</div>
+
+
+
+<div id="cryptoTableContainer" style="overflow-y: auto; height: 90vh;">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Top</th>
+                <th>Nume</th>
+                <th>Preț Curent</th>
+                <th>Schimbare Preț 24h</th>
+                <th>Schimbare Preț % (24h)</th>
+                <th>Capitalizare de Piață</th>
+                <th>Volum Total</th>
+                <th>Maxim 24h</th>
+                <th>Minim 24h</th>
+                <th>Maxim Istoric</th>
+                <th>Data Maxim Istoric</th>
+                <th>Minim Istoric</th>
+                <th>Data Minim Istoric</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var coin in _coins)
+            {
+                <tr style="color: @(coin.PriceChangePercentage24h >= 0 ? "green" : "red");">
+                    <td>@coin.MarketCapRank</td>
+                    <td style="white-space: nowrap; display: flex; align-items: center; gap: 8px;">
+                        <img src="@coin.Image" alt="@coin.Name" width="30" height="30" /> <b>@coin.Name</b> <span style="color:gray">@coin.Symbol.ToUpper()</span>
+                    </td>
+                    <td>@coin.CurrentPrice.ToString("C")</td>
+                    <td>@coin.PriceChange24h.ToString("C")</td>
+                    <td>@coin.PriceChangePercentage24h.ToString("F2")%</td>
+                    <td>@coin.MarketCap.ToString("C")</td>
+                    <td>@coin.TotalVolume.ToString("C")</td>
+                    <td>@coin.High24h.ToString("C")</td>
+                    <td>@coin.Low24h.ToString("C")</td>
+                    <td>@coin.AllTimeHigh.ToString("C")</td>
+                    <td>@coin.AllTimeHighDate.ToString("yyyy-MM-dd")</td>
+                    <td>@coin.AllTimeLow.ToString("C")</td>
+                    <td>@coin.AllTimeLowDate.ToString("yyyy-MM-dd")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<span style="justify-content: center; align-items: center; text-align:center; width:100%">@(isLoading ? "Încărcăm următoarea pagină..." : "")</span>
+
+@code {
+    private ObservableCollection<Coin> _coins = new ObservableCollection<Coin>();
+    private bool isLoading = false;
+    private int page = 1;
+    private const int pageSize = 50;
+    private bool isScrollEventInitialized = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _coins.CollectionChanged += (sender, e) => InvokeAsync(StateHasChanged);
+        await LoadMoreCoinsAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !isScrollEventInitialized)
+        {
+            await JSRuntime.InvokeVoidAsync("initializeScrollEvent", DotNetObjectReference.Create(this));
+            isScrollEventInitialized = true; // Ensure initialization happens only once
+        }
+    }
+
+    private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
+
+    private async Task LoadMoreCoinsAsync()
+    {
+        if (isLoading) return;
+
+        await semaphore.WaitAsync();
+        try
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            var newCoins = await CoinGeckoService.GetCoinsAsync("usd", page++, pageSize);
+
+            if (newCoins != null && newCoins.Any())
+            {
+                foreach (var coin in newCoins)
+                {
+                    _coins.Add(coin);
+                }
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading coins: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            semaphore.Release();
+            StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnScrollToBottom()
+    {
+        await LoadMoreCoinsAsync();
+    }
+
+    public void Dispose()
+    {
+        semaphore.Dispose();
+    }
+}
