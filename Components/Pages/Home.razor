@@ -153,18 +153,30 @@
             var coin = _coins[i];
             worksheet.Cell(i + 2, 1).Value = coin.MarketCapRank;
             worksheet.Cell(i + 2, 2).Value = coin.Name;
-            worksheet.Cell(i + 2, 3).Value = coin.CurrentPrice;
-            worksheet.Cell(i + 2, 4).Value = coin.PriceChange24h;
-            worksheet.Cell(i + 2, 5).Value = coin.PriceChangePercentage24h;
-            worksheet.Cell(i + 2, 6).Value = coin.MarketCap;
-            worksheet.Cell(i + 2, 7).Value = coin.TotalVolume;
-            worksheet.Cell(i + 2, 8).Value = coin.High24h;
-            worksheet.Cell(i + 2, 9).Value = coin.Low24h;
-            worksheet.Cell(i + 2, 10).Value = coin.AllTimeHigh;
+            worksheet.Cell(i + 2, 3).Value = coin.CurrentPrice.ToString("C");
+            worksheet.Cell(i + 2, 4).Value = coin.PriceChange24h.ToString("C");
+            worksheet.Cell(i + 2, 5).Value = coin.PriceChangePercentage24h.ToString("C");
+            worksheet.Cell(i + 2, 6).Value = FormatMarketCap(coin.MarketCap);
+            worksheet.Cell(i + 2, 7).Value = coin.TotalVolume.ToString("C");
+            worksheet.Cell(i + 2, 8).Value = coin.High24h.ToString("C");
+            worksheet.Cell(i + 2, 9).Value = coin.Low24h.ToString("C");
+            worksheet.Cell(i + 2, 10).Value = coin.AllTimeHigh.ToString("C");
             worksheet.Cell(i + 2, 11).Value = coin.AllTimeHighDate.ToString("yyyy-MM-dd");
-            worksheet.Cell(i + 2, 12).Value = coin.AllTimeLow;
+            worksheet.Cell(i + 2, 12).Value = coin.AllTimeLow.ToString("C");
             worksheet.Cell(i + 2, 13).Value = coin.AllTimeLowDate.ToString("yyyy-MM-dd");
+
+            // Apply font color to entire row based on PriceChange24h
+            if (coin.PriceChange24h > 0)
+            {
+                worksheet.Row(i + 2).Style.Font.FontColor = ClosedXML.Excel.XLColor.Green;
+            }
+            else if (coin.PriceChange24h < 0)
+            {
+                worksheet.Row(i + 2).Style.Font.FontColor = ClosedXML.Excel.XLColor.Red;
+            }
         }
+
+
 
         // Formatting table
         worksheet.Columns().AdjustToContents();
@@ -178,4 +190,20 @@
         var fileName = "Piață Criptomonede folosind API public de la CoinGecko - Rusan Nicolae Alexandru - zi " + DateTime.Now.ToString("dd/MM/yyyy") + " oră " + DateTime.Now.ToString("hh:mm:ss") + ".xlsx";
         await JSRuntime.InvokeVoidAsync("downloadFile", fileName, stream.ToArray());
     }
+
+    // A helper method to format large numbers into K, M, B, T
+    private string FormatMarketCap(decimal value)
+    {
+        if (value >= 1_000_000_000_000) // Trillions
+            return (value / 1_000_000_000_000m).ToString("0.##") + "T";
+        else if (value >= 1_000_000_000) // Billions
+            return (value / 1_000_000_000m).ToString("0.##") + "B";
+        else if (value >= 1_000_000) // Millions
+            return (value / 1_000_000m).ToString("0.##") + "M";
+        else if (value >= 1_000) // Thousands
+            return (value / 1_000m).ToString("0.##") + "K";
+        else
+            return value.ToString("0.##");
+    }
+      
 }
