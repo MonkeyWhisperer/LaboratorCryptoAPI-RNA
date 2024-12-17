@@ -5,56 +5,61 @@
 @rendermode InteractiveServer
 
 <script src="app.js"></script>
+<link href="app.css" rel="stylesheet" />
 
 <div style="display: flex; align-items: center; margin-left: 10px;">
     <a href="https://github.com/MonkeyWhisperer/LaboratorCryptoAPI-RNA" target="_blank" style="margin-right: 10px; text-decoration: none;">
         <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub" width="30" height="30" />
     </a>
     <h3 style="margin: 0;">Piață Criptomonede folosind API public de la <a target="_blank" href="https://docs.coingecko.com/v3.0.1/reference/introduction">CoinGecko</a> - Rusan Nicolae Alexandru</h3>
+    <div style="margin-left: auto; margin-right: 10px;">
+        <button class="modern-button" @onclick="DownloadExcelFile">Descarcă lista în format Excel</button>
+    </div>
 </div>
 
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Top</th>
-                <th>Nume</th>
-                <th>Preț Curent</th>
-                <th>Schimbare Preț 24h</th>
-                <th>Schimbare Preț % (24h)</th>
-                <th>Capitalizare de Piață</th>
-                <th>Volum Total</th>
-                <th>Maxim 24h</th>
-                <th>Minim 24h</th>
-                <th>Maxim Istoric</th>
-                <th>Data Maxim Istoric</th>
-                <th>Minim Istoric</th>
-                <th>Data Minim Istoric</th>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Top</th>
+            <th>Nume</th>
+            <th>Preț Curent</th>
+            <th>Schimbare Preț 24h</th>
+            <th>Schimbare Preț % (24h)</th>
+            <th>Capitalizare de Piață</th>
+            <th>Volum Total</th>
+            <th>Maxim 24h</th>
+            <th>Minim 24h</th>
+            <th>Maxim Istoric</th>
+            <th>Data Maxim Istoric</th>
+            <th>Minim Istoric</th>
+            <th>Data Minim Istoric</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var coin in _coins)
+        {
+            <tr style="color: @(coin.PriceChangePercentage24h >= 0 ? "green" : "red");">
+                <td>@coin.MarketCapRank</td>
+                <td style="white-space: nowrap; display: flex; align-items: center; gap: 8px;">
+                    <img src="@coin.Image" alt="@coin.Name" width="30" height="30" /> <b>@coin.Name</b> <span style="color:gray">@coin.Symbol.ToUpper()</span>
+                </td>
+                <td>@coin.CurrentPrice.ToString("C")</td>
+                <td>@coin.PriceChange24h.ToString("C")</td>
+                <td>@coin.PriceChangePercentage24h.ToString("F2")%</td>
+                <td>@coin.MarketCap.ToString("C")</td>
+                <td>@coin.TotalVolume.ToString("C")</td>
+                <td>@coin.High24h.ToString("C")</td>
+                <td>@coin.Low24h.ToString("C")</td>
+                <td>@coin.AllTimeHigh.ToString("C")</td>
+                <td>@coin.AllTimeHighDate.ToString("yyyy-MM-dd")</td>
+                <td>@coin.AllTimeLow.ToString("C")</td>
+                <td>@coin.AllTimeLowDate.ToString("yyyy-MM-dd")</td>
             </tr>
-        </thead>
-        <tbody>
-            @foreach (var coin in _coins)
-            {
-                <tr style="color: @(coin.PriceChangePercentage24h >= 0 ? "green" : "red");">
-                    <td>@coin.MarketCapRank</td>
-                    <td style="white-space: nowrap; display: flex; align-items: center; gap: 8px;">
-                        <img src="@coin.Image" alt="@coin.Name" width="30" height="30" /> <b>@coin.Name</b> <span style="color:gray">@coin.Symbol.ToUpper()</span>
-                    </td>
-                    <td>@coin.CurrentPrice.ToString("C")</td>
-                    <td>@coin.PriceChange24h.ToString("C")</td>
-                    <td>@coin.PriceChangePercentage24h.ToString("F2")%</td>
-                    <td>@coin.MarketCap.ToString("C")</td>
-                    <td>@coin.TotalVolume.ToString("C")</td>
-                    <td>@coin.High24h.ToString("C")</td>
-                    <td>@coin.Low24h.ToString("C")</td>
-                    <td>@coin.AllTimeHigh.ToString("C")</td>
-                    <td>@coin.AllTimeHighDate.ToString("yyyy-MM-dd")</td>
-                    <td>@coin.AllTimeLow.ToString("C")</td>
-                    <td>@coin.AllTimeLowDate.ToString("yyyy-MM-dd")</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+        }
+    </tbody>
+</table>
 
 @code {
     private ObservableCollection<Coin> _coins = new ObservableCollection<Coin>();
@@ -122,5 +127,55 @@
     public void Dispose()
     {
         semaphore.Dispose();
+    }
+
+    private async Task DownloadExcelFile()
+    {
+        using var workbook = new ClosedXML.Excel.XLWorkbook();
+        var worksheet = workbook.Worksheets.Add("Coins");
+
+        // Adding headers
+        var headers = new[]
+        {
+            "Top", "Nume", "Preț Curent", "Schimbare Preț 24h", "Schimbare Preț % (24h)",
+            "Capitalizare de Piață", "Volum Total", "Maxim 24h", "Minim 24h",
+            "Maxim Istoric", "Data Maxim Istoric", "Minim Istoric", "Data Minim Istoric"
+        };
+
+        for (int i = 0; i < headers.Length; i++)
+        {
+            worksheet.Cell(1, i + 1).Value = headers[i];
+        }
+
+        // Adding data
+        for (int i = 0; i < _coins.Count; i++)
+        {
+            var coin = _coins[i];
+            worksheet.Cell(i + 2, 1).Value = coin.MarketCapRank;
+            worksheet.Cell(i + 2, 2).Value = coin.Name;
+            worksheet.Cell(i + 2, 3).Value = coin.CurrentPrice;
+            worksheet.Cell(i + 2, 4).Value = coin.PriceChange24h;
+            worksheet.Cell(i + 2, 5).Value = coin.PriceChangePercentage24h;
+            worksheet.Cell(i + 2, 6).Value = coin.MarketCap;
+            worksheet.Cell(i + 2, 7).Value = coin.TotalVolume;
+            worksheet.Cell(i + 2, 8).Value = coin.High24h;
+            worksheet.Cell(i + 2, 9).Value = coin.Low24h;
+            worksheet.Cell(i + 2, 10).Value = coin.AllTimeHigh;
+            worksheet.Cell(i + 2, 11).Value = coin.AllTimeHighDate.ToString("yyyy-MM-dd");
+            worksheet.Cell(i + 2, 12).Value = coin.AllTimeLow;
+            worksheet.Cell(i + 2, 13).Value = coin.AllTimeLowDate.ToString("yyyy-MM-dd");
+        }
+
+        // Formatting table
+        worksheet.Columns().AdjustToContents();
+
+        // Generate Excel file as a memory stream
+        using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+        stream.Position = 0;
+
+        // Trigger file download
+        var fileName = "Piață Criptomonede folosind API public de la CoinGecko - Rusan Nicolae Alexandru - zi " + DateTime.Now.ToString("dd/MM/yyyy") + " oră " + DateTime.Now.ToString("dd/MM/yyyy") + ".xlsx";
+        await JSRuntime.InvokeVoidAsync("downloadFile", fileName, stream.ToArray());
     }
 }
