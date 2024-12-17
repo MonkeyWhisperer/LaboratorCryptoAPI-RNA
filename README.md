@@ -1,8 +1,10 @@
 Cod sursă Blazor Web Assembly pentru **https://laboratorcryptoapi-rna20241216173229.azurewebsites.net** unde puteți vizuliza piața criptomonedelor cu paginare infinită la scroll și descărca lista afișată ca Excel în format .xlsx 
 
-Documentație API https://docs.coingecko.com/v3.0.1/reference/introduction 
+Documentație API CoinGecko https://docs.coingecko.com/v3.0.1/reference/introduction 
 
-Trebuie cerută cheie de dezvoltator de la coingecko și pusă în appsettings.json
+Documentație + suport cod sursă https://docs.google.com/document/d/1k6DIALXDzQDBs0Tpr5qhnJKIfd-zm0oWJw1w5vg3H8Y/edit?usp=sharing
+
+Pentru rulare cod pe dispozitiv propriu trebuie cerută cheie de dezvoltator de la CoinGecko și pusă în appsettings.json
 
 "CoinGeckoApi": {
   "BaseUrl": "https://api.coingecko.com/api/v3",
