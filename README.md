@@ -1,4 +1,5 @@
 Cod sursă Blazor Web Assembly pentru **https://laboratorcryptoapi-rna20241216173229.azurewebsites.net** 
+unde puteti vizuliza piața criptomonedelor cu paginare infinită și descărca în format .csv lista afișată
 
 Documentație API https://docs.coingecko.com/v3.0.1/reference/introduction 
 
