@@ -4,9 +4,9 @@ Documentație API CoinGecko https://docs.coingecko.com/v3.0.1/reference/introduc
 
 Documentație + suport cod sursă https://docs.google.com/document/d/1k6DIALXDzQDBs0Tpr5qhnJKIfd-zm0oWJw1w5vg3H8Y/edit?usp=sharing
 
-Pentru rulare cod pe dispozitiv propriu trebuie cerută cheie de dezvoltator de la CoinGecko și pusă în appsettings.json
+Pentru rulare cod pe dispozitiv propriu trebuie cerută cheie de dezvoltator de la CoinGecko https://www.coingecko.com/en/developers/dashboard și pusă în appsettings.json
 
 "CoinGeckoApi": {
   "BaseUrl": "https://api.coingecko.com/api/v3",
-  "ApiKey": "TREBUIE CERUTA"
+  "ApiKey": "TREBUIE CERUTĂ"
 }
